@@ -351,6 +351,7 @@ type NodeStatsFSDataResponse struct {
 	Total     int64  `json:"total_in_bytes"`
 	Free      int64  `json:"free_in_bytes"`
 	Available int64  `json:"available_in_bytes"`
+	Type      string `json:"type"`
 }
 
 // NodeStatsFSIOStatsResponse defines node stats filesystem device structure

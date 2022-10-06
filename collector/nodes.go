@@ -84,7 +84,7 @@ func createRoleMetric(role string) *nodeMetric {
 }
 
 var (
-	defaultNodeLabels               = []string{"cluster", "host", "name", "es_master_node", "es_data_node", "es_ingest_node", "es_client_node"}
+	defaultNodeLabels               = []string{"cluster", "host", "name", "es_master_node", "es_data_node", "es_ingest_node", "es_client_node", "fs"}
 	defaultRoleLabels               = []string{"cluster", "host", "name"}
 	defaultThreadPoolLabels         = append(defaultNodeLabels, "type")
 	defaultBreakerLabels            = append(defaultNodeLabels, "breaker")
@@ -94,6 +94,14 @@ var (
 
 	defaultNodeLabelValues = func(cluster string, node NodeStatsNodeResponse) []string {
 		roles := getRoles(node)
+		fs := ""
+		if len(node.FS.Data) > 0 {
+			fs = node.FS.Data[0].Type
+		}
+		if fs == "" {
+			fs = "unknown"
+		}
+
 		return []string{
 			cluster,
 			node.Host,
@@ -102,6 +110,7 @@ var (
 			fmt.Sprintf("%t", roles["data"]),
 			fmt.Sprintf("%t", roles["ingest"]),
 			fmt.Sprintf("%t", roles["client"]),
+			fs,
 		}
 	}
 	defaultThreadPoolLabelValues = func(cluster string, node NodeStatsNodeResponse, pool string) []string {
