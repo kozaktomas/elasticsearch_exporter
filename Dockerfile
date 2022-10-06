@@ -1,12 +1,24 @@
-ARG ARCH="amd64"
-ARG OS="linux"
-FROM quay.io/prometheus/busybox-${OS}-${ARCH}:glibc
-LABEL maintainer="The Prometheus Authors <prometheus-developers@googlegroups.com>"
+FROM golang:1.18 AS builder
+ENV CGO_ENABLED 0
+ADD . /app
+WORKDIR /app
+RUN go build -ldflags "-s -w" -v -o elasticsearch_exporter .
 
-ARG ARCH="amd64"
-ARG OS="linux"
-COPY .build/${OS}-${ARCH}/elasticsearch_exporter /bin/elasticsearch_exporter
+FROM alpine:3
+RUN apk update && \
+    apk add openssl && \
+    rm -rf /var/cache/apk/* \
+    && mkdir /app
 
-EXPOSE      7979
-USER        nobody
-ENTRYPOINT  [ "/bin/elasticsearch_exporter" ]
+WORKDIR /app
+
+ADD Dockerfile /Dockerfile
+
+COPY --from=builder /app/elasticsearch_exporter /app/elasticsearch_exporter
+
+RUN chown nobody /app/elasticsearch_exporter \
+    && chmod 500 /app/elasticsearch_exporter
+
+USER nobody
+
+ENTRYPOINT ["/app/elasticsearch_exporter"]
